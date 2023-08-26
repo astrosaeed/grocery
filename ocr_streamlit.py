@@ -96,13 +96,13 @@ def get_ocr(img_path):
     #st.dataframe(df)
     grid_return = AgGrid(df,editable=True)
 
-    if st.button('Say hello'):
+    if st.button('If the info is correct, click here to add it to the database'):
         
         new_df = grid_return['data']
         conn = init_connection()
         insert_dataframe_to_table(new_df,"transactions",conn)
     
-        print (important_results)
+        #print (important_results)
         rows = run_query("SELECT * from transactions;",conn)
         conn.close()
         st.write('Successfully to db')
@@ -110,27 +110,7 @@ def get_ocr(img_path):
         st.write('Goodbye')
 
    
-    
-    ''' 
-# Print results.
-    for row in rows:
-        st.write(f"{row[0]} has a :{row[1]}:")
-    '''
-    font = "/usr/share/fonts/truetype/Gargi/Gargi.ttf"
 
-    '''
-    # draw result
-    from PIL import Image
-    result = result[0]
-    image = Image.open(img_path).convert('RGB')
-    boxes = [line[0] for line in result]
-    txts = [line[1][0] for line in result]
-    scores = [line[1][1] for line in result]
-    im_show = draw_ocr(image, boxes, txts, scores, font_path=font)
-    im_show = Image.fromarray(im_show)
-    im_show.save('result.jpg')
-    #st.image(im_show)
-    '''
 if check_password():
    
 
