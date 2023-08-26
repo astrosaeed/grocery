@@ -3,3 +3,9 @@ openai
 llama-index 
 nltk
 PyPDF2==2.12.1
+paddleocr
+streamlit-aggrid
+psycopg2
+pandas
+numpy
+pillow
