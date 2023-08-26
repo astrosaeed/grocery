@@ -3,7 +3,7 @@ openai
 llama-index 
 nltk
 PyPDF2==2.12.1
-paddleocr
+paddlepaddle -i https://pypi.tuna.tsinghua.edu.cn/simple
 streamlit-aggrid
 psycopg2-binary
 pandas
