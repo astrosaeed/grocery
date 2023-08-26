@@ -18,6 +18,35 @@ from st_aggrid import AgGrid
 from pdf_utils import read_pdf_instacart
 
 
+def check_password():
+    """Returns `True` if the user had the correct password."""
+
+    def password_entered():
+        """Checks whether a password entered by the user is correct."""
+        if st.session_state["password"] == st.secrets["password"]:
+            st.session_state["password_correct"] = True
+            del st.session_state["password"]  # don't store password
+        else:
+            st.session_state["password_correct"] = False
+
+    if "password_correct" not in st.session_state:
+        # First run, show input for password.
+        st.text_input(
+            "Password", type="password", on_change=password_entered, key="password"
+        )
+        return False
+    elif not st.session_state["password_correct"]:
+        # Password not correct, show input + error.
+        st.text_input(
+            "Password", type="password", on_change=password_entered, key="password"
+        )
+        st.error("😕 Password incorrect")
+        return False
+    else:
+        # Password correct.
+        return True
+
+
 # Initialize connection.
 # Uses st.cache_resource to only run once.
 @st.cache_resource
@@ -102,33 +131,34 @@ def get_ocr(img_path):
     im_show.save('result.jpg')
     #st.image(im_show)
     '''
+if check_password():
+   
 
-
-#https://blog.jcharistech.com/2021/01/21/how-to-save-uploaded-files-to-directory-in-streamlit-apps/
-image_file = st.file_uploader("Upload An Image",type=['png','jpeg','jpg','pdf'])
-#image_file = st.file_uploader("Choose a file", "pdf")
-if image_file is not None:
-    file_details = {"FileName":image_file.name,"FileType":image_file.type}
-    st.write(file_details)
-    #img = load_image(image_file)
-    print (file_details)
-    if 'pdf' not in image_file.name:
-        st.image(image_file)
-        with open(os.path.join("./",image_file.name),"wb") as f: 
-            f.write(image_file.getbuffer())         
-        st.success("Saved File")
-
-        get_ocr(image_file.name)
-    else:
-        #file_details = {"FileName":image_file.name,"FileType":image_file.type}
-        #st.write(file_details)
+    #https://blog.jcharistech.com/2021/01/21/how-to-save-uploaded-files-to-directory-in-streamlit-apps/
+    image_file = st.file_uploader("Upload An Image",type=['png','jpeg','jpg','pdf'])
+    #image_file = st.file_uploader("Choose a file", "pdf")
+    if image_file is not None:
+        file_details = {"FileName":image_file.name,"FileType":image_file.type}
+        st.write(file_details)
         #img = load_image(image_file)
         print (file_details)
-        with open(os.path.join("./",image_file.name),"wb") as f: 
-            f.write(image_file.getbuffer())         
-        st.success("Saved File")
-        names , costs, dates, vendor, img_path = read_pdf_instacart(image_file.name)
-        df = pd.DataFrame({'item':names ,'cost':costs, 'dates':dates, 'vendor':vendor, 'path': img_path})
-        st.dataframe(df)
+        if 'pdf' not in image_file.name:
+            st.image(image_file)
+            with open(os.path.join("./",image_file.name),"wb") as f: 
+                f.write(image_file.getbuffer())         
+            st.success("Saved File")
+
+            get_ocr(image_file.name)
+        else:
+            #file_details = {"FileName":image_file.name,"FileType":image_file.type}
+            #st.write(file_details)
+            #img = load_image(image_file)
+            print (file_details)
+            with open(os.path.join("./",image_file.name),"wb") as f: 
+                f.write(image_file.getbuffer())         
+            st.success("Saved File")
+            names , costs, dates, vendor, img_path = read_pdf_instacart(image_file.name)
+            df = pd.DataFrame({'item':names ,'cost':costs, 'dates':dates, 'vendor':vendor, 'path': img_path})
+            st.dataframe(df)
 
 
