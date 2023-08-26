@@ -5,7 +5,7 @@ nltk
 PyPDF2==2.12.1
 paddleocr
 streamlit-aggrid
-psycopg2
+psycopg2-binary
 pandas
 numpy
 pillow
