@@ -4,6 +4,7 @@ llama-index
 nltk
 PyPDF2==2.12.1
 paddleocr>=2.0.1"
+paddlepaddle
 streamlit-aggrid
 psycopg2-binary
 pandas
