@@ -7,7 +7,7 @@ import streamlit as st
 import pandas as pd
 from io import StringIO
 from PIL import ImageFont
-from paddleocr import PaddleOCR,draw_ocr
+from paddleocr import PaddleOCR
 import re
 import psycopg2
 from psycopg2 import extras
