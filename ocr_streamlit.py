@@ -10,6 +10,9 @@ from PIL import ImageFont
 from paddleocr import PaddleOCR
 import re
 import psycopg2
+import gspread
+from google.oauth2 import service_account
+from gsheetsdb import connect
 from psycopg2 import extras
 from receipt_utils import convert_to_float_if_decimal
 from receipt_utils import build_table 
@@ -75,6 +78,13 @@ def insert_dataframe_to_table(dataframe, table_name, _connection):
     # Commit the changes
     _connection.commit()
 
+def dataframe_to_list_of_lists(df):
+    list_of_lists = []
+    
+    for index, row in df.iterrows():
+        list_of_lists.append(row.tolist())
+    
+    return list_of_lists
 
 def get_ocr(img_path):
 
@@ -91,7 +101,9 @@ def get_ocr(img_path):
             print(line[1][0])
 
     important_results = [convert_to_float_if_decimal(line[1][0]) for line in result[0]]
+    #rows =[]
     names, costs, dates, vendor = build_table(important_results)
+
     df = pd.DataFrame({'item':names ,'cost':costs, 'dates':dates, 'vendor':vendor, 'path': img_path})
     #st.dataframe(df)
     grid_return = AgGrid(df,editable=True)
@@ -99,12 +111,25 @@ def get_ocr(img_path):
     if st.button('If the info is correct, click here to add it to the database'):
         
         new_df = grid_return['data']
-        conn = init_connection()
-        insert_dataframe_to_table(new_df,"transactions",conn)
-    
+        # Create a connection object.
+        rows = dataframe_to_list_of_lists(new_df)
+        credentials = service_account.Credentials.from_service_account_info(
+            st.secrets["gcp_service_account"],
+            scopes=[
+                "https://www.googleapis.com/auth/spreadsheets","https://www.googleapis.com/auth/drive"
+            ],
+        )
+        conn = connect(credentials=credentials)
+        client=gspread.authorize(credentials)
+        sheet_url = st.secrets["gsheets"]["private_gsheets_url"] #this information should be included in streamlit secret
+        sheet = client.open_by_url(sheet_url).sheet1
+        sheet.append_rows(rows)
+        #conn = init_connection()
+        #insert_dataframe_to_table(new_df,"transactions",conn)
+
         #print (important_results)
-        rows = run_query("SELECT * from transactions;",conn)
-        conn.close()
+        #rows = run_query("SELECT * from transactions;",conn)
+        #conn.close()
         st.write('Successfully to db')
     else:
         st.write('Goodbye')
@@ -137,6 +162,7 @@ if check_password():
             with open(os.path.join("./",image_file.name),"wb") as f: 
                 f.write(image_file.getbuffer())         
             st.success("Saved File")
+            rows =[]
             names , costs, dates, vendor, img_path = read_pdf_instacart(image_file.name)
             df = pd.DataFrame({'item':names ,'cost':costs, 'dates':dates, 'vendor':vendor, 'path': img_path})
             st.dataframe(df)

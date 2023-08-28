@@ -10,4 +10,7 @@ psycopg2-binary
 pandas
 numpy
 pillow
-opencv-python
+opencv-python-headless
+gsheetsdb
+gspread
+pyparsing
