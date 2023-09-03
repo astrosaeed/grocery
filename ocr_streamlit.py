@@ -103,10 +103,14 @@ def get_ocr(img_path):
     important_results = [convert_to_float_if_decimal(line[1][0]) for line in result[0]]
     #rows =[]
     names, costs, dates, vendor = build_table(important_results)
-
-    df = pd.DataFrame({'item':names ,'cost':costs, 'dates':dates, 'vendor':vendor, 'path': img_path})
-    #st.dataframe(df)
-    grid_return = AgGrid(df,editable=True)
+    if 'N/A' in vendor:
+        title = st.text_input('Could not figure out the name of the vendor, write it here', 'N/A')
+        vendor = [title for _ in names]
+    
+    if st.button('Vendor updated'):
+        df = pd.DataFrame({'item':names ,'label':['' for _ in names],'cost':costs, 'dates':dates, 'vendor':vendor, 'path': img_path})
+        #st.dataframe(df)
+        grid_return = AgGrid(df,editable=True)
 
     if st.button('If the info is correct, click here to add it to the database'):
         
