@@ -3,8 +3,9 @@ import re
 import psycopg2
 import sys
 from psycopg2 import extras
+from vendors import VENDORS
 not_needed= [ 'ewey doy you get cu btst', '650 HARRY L DRIVE', 'johnson city,ny 13790', '607729-7782','@','sc','dp','wt','650 harry l drive']
-VENDORS =['wegmans','walmart']
+#VENDORS =['wegmans','walmart']
 def convert_to_float_if_decimal(input_str):
     decimal_pattern = r'^(?!\@)\$?\d+\.\d{2}.?[a-zA-Z]?$'
 #r'^\d+\.\d{2}[a-zA-Z]?$'   #
