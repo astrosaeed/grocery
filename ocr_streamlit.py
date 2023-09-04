@@ -19,6 +19,8 @@ from receipt_utils import build_table
 import time
 from st_aggrid import AgGrid
 from pdf_utils import read_pdf_instacart
+import time
+import boto3
 
 
 def check_password():
@@ -50,33 +52,6 @@ def check_password():
         return True
 
 
-# Initialize connection.
-# Uses st.cache_resource to only run once.
-@st.cache_resource
-def init_connection():
-    return psycopg2.connect(**st.secrets["postgres"])
-
-# Uses st.cache_data to only rerun when the query changes or after 10 min.
-@st.cache_data(ttl=600)
-def run_query(query,_conn):
-    with _conn.cursor() as cur:
-        cur.execute(query)
-        return cur.fetchall()
-
-@st.cache_data(ttl=600)
-def insert_dataframe_to_table(dataframe, table_name, _connection):
-    # Convert DataFrame to a list of tuples
-    values = dataframe.values.tolist()
-
-    # Create a SQL INSERT statement
-    insert_query = f"INSERT INTO {table_name} VALUES %s"
-
-    # Execute the insert statement
-    with _connection.cursor() as cursor:
-        extras.execute_values(cursor, insert_query, values, page_size=len(values))
-
-    # Commit the changes
-    _connection.commit()
 
 def dataframe_to_list_of_lists(df):
     list_of_lists = []
@@ -85,6 +60,21 @@ def dataframe_to_list_of_lists(df):
         list_of_lists.append(row.tolist())
     
     return list_of_lists
+def uploadMP4ToS3(file, bucket,filename):
+    s3 = boto3.client('s3',
+                      region_name=st.secrets["s3"]["AWS_DEFAULT_REGION"],
+                      aws_access_key_id=st.secrets["s3"]["AWS_ACCESS_KEY_ID"],
+                      aws_secret_access_key=st.secrets["s3"]["AWS_SECRET_ACCESS_KEY"])
+    
+    try:
+        #s3.upload_file(file, bucket, s3_file)
+        s3.upload_fileobj(file, bucket,filename)
+        st.success('File Successfully Uploaded to s3')
+        return True
+    except FileNotFoundError:
+        time.sleep(9)
+        st.error('File not found.')
+        return False 
 
 def get_ocr(img_path):
 
@@ -107,12 +97,12 @@ def get_ocr(img_path):
         title = st.text_input('Could not figure out the name of the vendor, write it here', 'N/A')
         vendor = [title for _ in names]
     
-    if st.button('Vendor updated'):
+    if st.button('Vendor updated?'):
         df = pd.DataFrame({'item':names ,'label':['' for _ in names],'cost':costs, 'dates':dates, 'vendor':vendor, 'path': img_path})
         #st.dataframe(df)
         grid_return = AgGrid(df,editable=True)
 
-    if st.button('If the info is correct, click here to add it to the database'):
+   # if st.button('If the info is correct, click here to add it to the database'):
         
         new_df = grid_return['data']
         # Create a connection object.
@@ -151,6 +141,10 @@ if check_password():
         st.write(file_details)
         #img = load_image(image_file)
         print (file_details)
+        #img = load_image(image_file)
+        st.success(image_file.name + ' Selected')
+  
+        
         if 'pdf' not in image_file.name:
             st.image(image_file)
             with open(os.path.join("./",image_file.name),"wb") as f: 
@@ -163,12 +157,14 @@ if check_password():
             #st.write(file_details)
             #img = load_image(image_file)
             print (file_details)
-            with open(os.path.join("./",image_file.name),"wb") as f: 
-                f.write(image_file.getbuffer())         
-            st.success("Saved File")
+            #with open(os.path.join("./",image_file.name),"wb") as f: 
+            #    f.write(image_file.getbuffer())         
+            #st.success("Saved File")
             rows =[]
             names , costs, dates, vendor, img_path = read_pdf_instacart(image_file.name)
             df = pd.DataFrame({'item':names ,'cost':costs, 'dates':dates, 'vendor':vendor, 'path': img_path})
             st.dataframe(df)
 
-
+        if st.button('Upload to s3?'):
+            with st.spinner('Uploading...'):
+                uploadMP4ToS3(image_file,st.secrets["s3"]["bucket_name"],image_file.name)

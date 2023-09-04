@@ -14,3 +14,6 @@ opencv-python-headless
 gsheetsdb
 gspread
 pyparsing
+gcsfs
+git+https://github.com/streamlit/files-connection
+
