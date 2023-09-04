@@ -16,4 +16,7 @@ gspread
 pyparsing
 gcsfs
 git+https://github.com/streamlit/files-connection
-
+boto3
+s3fs
+# Direct pypi install coming soon
+git+https://github.com/streamlit/files-connection
