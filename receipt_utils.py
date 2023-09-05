@@ -1,8 +1,8 @@
 import streamlit as st
 import re
-import psycopg2
+
 import sys
-from psycopg2 import extras
+
 from vendors import VENDORS
 not_needed= [ 'ewey doy you get cu btst', '650 HARRY L DRIVE', 'johnson city,ny 13790', '607729-7782','@','sc','dp','wt','650 harry l drive']
 #VENDORS =['wegmans','walmart']
