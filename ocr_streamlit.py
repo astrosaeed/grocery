@@ -9,11 +9,11 @@ from io import StringIO
 from PIL import ImageFont
 from paddleocr import PaddleOCR
 import re
-import psycopg2
+#import psycopg2
 import gspread
 from google.oauth2 import service_account
 from gsheetsdb import connect
-from psycopg2 import extras
+#from psycopg2 import extras
 from receipt_utils import convert_to_float_if_decimal
 from receipt_utils import build_table 
 import time
