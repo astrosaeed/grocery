@@ -86,50 +86,11 @@ def get_ocr(img_path):
     ocr = PaddleOCR(use_angle_cls=True, lang='en') # need to run only once to download and load model into memory
 #    img_path = path
     with st.spinner('Wait as we are reading the image'):
-        result = ocr.ocr(img_path, cls=True)
-    for idx in range(len(result)):
-        res = result[idx]
-        for line in res:
-            print(line[1][0])
-
-    important_results = [convert_to_float_if_decimal(line[1][0]) for line in result[0]]
-    #rows =[]
-    names, costs, dates, vendor = build_table(important_results)
-    if 'N/A' in vendor:
-        title = st.text_input('Could not figure out the name of the vendor, write it here', 'N/A')
-        vendor = [title for _ in names]
+        res = ocr.ocr(img_path, cls=True)
     
-    if st.button('Vendor updated?'):
-        df = pd.DataFrame({'item':names ,'label':['' for _ in names],'cost':costs, 'dates':dates, 'vendor':vendor, 'path': img_path})
-        #st.dataframe(df)
-        grid_return = AgGrid(df,editable=True)
-
-   # if st.button('If the info is correct, click here to add it to the database'):
-        
-        new_df = grid_return['data']
-        # Create a connection object.
-        rows = dataframe_to_list_of_lists(new_df)
-        credentials = service_account.Credentials.from_service_account_info(
-            st.secrets["gcp_service_account"],
-            scopes=[
-                "https://www.googleapis.com/auth/spreadsheets","https://www.googleapis.com/auth/drive"
-            ],
-        )
-        conn = connect(credentials=credentials)
-        client=gspread.authorize(credentials)
-        sheet_url = st.secrets["gsheets"]["private_gsheets_url"] #this information should be included in streamlit secret
-        sheet = client.open_by_url(sheet_url).sheet1
-        sheet.append_rows(rows)
-        #conn = init_connection()
-        #insert_dataframe_to_table(new_df,"transactions",conn)
-
-        #print (important_results)
-        #rows = run_query("SELECT * from transactions;",conn)
-        #conn.close()
-        st.write('Successfully to db')
-    else:
-        st.write('Goodbye')
-
+    return res
+    
+    
    
 
 if check_password():
@@ -153,20 +114,60 @@ if check_password():
                 f.write(image_file.getbuffer())         
             st.success("Saved File")
 
-            get_ocr(image_file.name)
+            result =get_ocr(image_file.name)
+            img_path = image_file.name
         else:
-            #file_details = {"FileName":image_file.name,"FileType":image_file.type}
-            #st.write(file_details)
-            #img = load_image(image_file)
+
             print (file_details)
-            #with open(os.path.join("./",image_file.name),"wb") as f: 
-            #    f.write(image_file.getbuffer())         
-            #st.success("Saved File")
+     
             rows =[]
             names , costs, dates, vendor, img_path = read_pdf_instacart(image_file.name)
             df = pd.DataFrame({'item':names ,'cost':costs, 'dates':dates, 'vendor':vendor, 'path': img_path})
             st.dataframe(df)
 
+
+
+        
+        important_results = [convert_to_float_if_decimal(line[1][0]) for line in result[0]]
+        #rows =[]
+        names, costs, dates, vendor = build_table(important_results)
+        if 'N/A' in vendor:
+            title = st.text_input('Could not figure out the name of the vendor, write it here', 'N/A')
+            vendor = [title for _ in names]
+        
+        if st.button('Vendor updated?'):
+            df = pd.DataFrame({'item':names ,'label':['' for _ in names],'cost':costs, 'dates':dates, 'vendor':vendor, 'path': img_path})
+            #st.dataframe(df)
+            grid_return = AgGrid(df,editable=True)
+
+    # if st.button('If the info is correct, click here to add it to the database'):
+            
+            new_df = grid_return['data']
+            # Create a connection object.
+            rows = dataframe_to_list_of_lists(new_df)
+            credentials = service_account.Credentials.from_service_account_info(
+                st.secrets["gcp_service_account"],
+                scopes=[
+                    "https://www.googleapis.com/auth/spreadsheets","https://www.googleapis.com/auth/drive"
+                ],
+            )
+            conn = connect(credentials=credentials)
+            client=gspread.authorize(credentials)
+            sheet_url = st.secrets["gsheets"]["private_gsheets_url"] #this information should be included in streamlit secret
+            sheet = client.open_by_url(sheet_url).sheet1
+            sheet.append_rows(rows)
+            #conn = init_connection()
+            #insert_dataframe_to_table(new_df,"transactions",conn)
+
+            #print (important_results)
+            #rows = run_query("SELECT * from transactions;",conn)
+            #conn.close()
+            st.write('Successfully to db')
+
+        else:
+            st.write('Goodbye')
+
+            
         if st.button('Upload to s3?'):
-            with st.spinner('Uploading...'):
-                uploadMP4ToS3(image_file,st.secrets["s3"]["bucket_name"],image_file.name)
+                with st.spinner('Uploading...'):
+                    uploadMP4ToS3(image_file,st.secrets["s3"]["bucket_name"],image_file.name)
