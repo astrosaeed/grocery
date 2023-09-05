@@ -1,12 +1,12 @@
 streamlit 
 openai 
-llama-index 
+#llama-index 
 nltk
 PyPDF2==2.12.1
 paddleocr>=2.0.1"
 paddlepaddle
 streamlit-aggrid
-psycopg2-binary
+#psycopg2-binary
 pandas
 numpy
 pillow
@@ -14,8 +14,6 @@ opencv-python-headless
 gsheetsdb
 gspread
 pyparsing
-gcsfs
-git+https://github.com/streamlit/files-connection
 boto3
 s3fs
 # Direct pypi install coming soon
